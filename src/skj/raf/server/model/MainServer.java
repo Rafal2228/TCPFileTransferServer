@@ -64,6 +64,11 @@ public class MainServer {
 		if(_started) {
 			_started = false;
 			RenderCtrl.updateStatus(Status.STOPPED);
+			for(ClientHandler session : _allSessions) {
+				session.close();
+				_allSessions.remove(session);
+			}
+			RenderCtrl.updateSessions(_allSessions.size());
 			try {
 				_server.close();
 				System.out.println(PRE_CONSOLE + "Stopping main server");
