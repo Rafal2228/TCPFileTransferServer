@@ -27,6 +27,7 @@ public class ClientHandler implements Runnable {
 	public void close() {
 		try {
 			_running = false;
+			_writer.println("close");
 			_client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
