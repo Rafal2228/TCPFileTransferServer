@@ -14,9 +14,9 @@ public class ClientHandler implements Runnable {
 	private boolean _running = true;
 	
 	public ClientHandler(Socket client) {
-		try {	
+		try {
 			_client = client;
-			_downloader = new DownloadHandler(client.getInputStream());
+			_downloader = new DownloadHandler(client.getInputStream(), client.getOutputStream());
 			_writer = new PrintWriter(client.getOutputStream(), true);
 			System.out.println(PRE_CONSOLE + "Created new connection handler");
 		} catch (IOException e) {
@@ -26,8 +26,7 @@ public class ClientHandler implements Runnable {
 	
 	public void close() {
 		try {
-			_downloader.close();
-			_writer.close();
+			_running = false;
 			_client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -36,8 +35,8 @@ public class ClientHandler implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println(PRE_CONSOLE + "Listening for input");
 		while(_running) {
-			System.out.println(PRE_CONSOLE + "Listening for input");
 			_running = _downloader.execute();
 		}
 		close();

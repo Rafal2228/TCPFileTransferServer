@@ -48,4 +48,11 @@ public class RenderCtrl {
 		_mainFrame.updateSessions(sessions + "");
 	}
 	
+	public static void updateRootFolder(String folder) {
+		_mainFrame.updateFolder(folder);
+	}
+	
+	public static void updateWhitelist(String whitelist) {
+		_mainFrame.updateWhitelist(whitelist);
+	}
 }

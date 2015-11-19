@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,6 +24,8 @@ public class MainFrame extends JFrame{
 	private JLabel _port;
 	private JLabel _status;
 	private JLabel _sessions;
+	private JLabel _folder;
+	private JLabel _whitelist;
 	
 	public MainFrame(){
 		super("Server v.0.1");
@@ -62,7 +65,26 @@ public class MainFrame extends JFrame{
 			}
 		});
 		menuPanel.add(stop);
+		
+		menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+		
+		JButton folder = new JButton("Change folder");
+		folder.setAlignmentX(CENTER_ALIGNMENT);
+		folder.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int state = chooser.showOpenDialog(null);
 				
+				if(state == JFileChooser.APPROVE_OPTION) {
+					ConnectionCtrl.changeRootDirectory(chooser.getSelectedFile().getPath());
+				}
+			}
+		});
+		menuPanel.add(folder);
+		
 		menuPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 		
 		JButton end = new JButton("End");
@@ -102,13 +124,22 @@ public class MainFrame extends JFrame{
 		bodyPanel.add(_status);
 		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 		
+		_folder = new JLabel("Folder: ");
+		_folder.setAlignmentX(LEFT_ALIGNMENT);
+		bodyPanel.add(_folder);
+		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		
 		_sessions = new JLabel("Sessions: ");
 		_sessions.setAlignmentX(LEFT_ALIGNMENT);
 		bodyPanel.add(_sessions);
 		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
+		_whitelist = new JLabel("Whitelist: ");
+		_whitelist.setAlignmentX(LEFT_ALIGNMENT);
+		bodyPanel.add(_whitelist);
+		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 		
-		add(bodyPanel, BorderLayout.EAST);
+		add(bodyPanel, BorderLayout.CENTER);
 	}
 
 	public void updateIP(String ip) {
@@ -125,6 +156,14 @@ public class MainFrame extends JFrame{
 	
 	public void updateSessions(String sessions) {
 		_sessions.setText("Sessions: " + sessions);
+	}
+	
+	public void updateFolder(String folder) {
+		_folder.setText("Folder: " + folder);
+	}
+	
+	public void updateWhitelist(String whitelist) {
+		_whitelist.setText("Whitelist: " + whitelist);
 	}
 	
 	public void bootstrap() {

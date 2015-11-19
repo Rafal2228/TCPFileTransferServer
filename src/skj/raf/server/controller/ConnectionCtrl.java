@@ -1,7 +1,9 @@
 package skj.raf.server.controller;
 
 import java.util.Date;
+import java.util.List;
 
+import skj.raf.server.model.DownloadHandler;
 import skj.raf.server.model.MainServer;
 
 public class ConnectionCtrl {
@@ -10,8 +12,19 @@ public class ConnectionCtrl {
 	private static MainServer _mainServer;
 	
 	public static void createServer(int port) {
+		createServer(port, null);
+	}
+	
+	public static void createServer(int port, String folder) {
+		DownloadHandler.changeRootDirectory(folder); 
 		System.out.println(PRE_CONSOLE + "Main server created at: " + new Date().toString());
 		_mainServer = new MainServer(port);
+	}
+	
+	public static void createServer(int port, String folder, List<String> whitelist) {
+		DownloadHandler.changeRootDirectory(folder); 
+		System.out.println(PRE_CONSOLE + "Main server created at: " + new Date().toString());
+		_mainServer = new MainServer(port, whitelist);
 	}
 	
 	public static void startServer() {
@@ -22,4 +35,9 @@ public class ConnectionCtrl {
 		_mainServer.stop();
 	}
 	
+	public static void changeRootDirectory(String folder) {
+		if(!_mainServer.isRunning()){
+			DownloadHandler.changeRootDirectory(folder);
+		}
+	}
 }
