@@ -98,8 +98,9 @@ public class DownloadHandler {
 							
 						} break;
 						
-						case "dir": {
+						case "dir": {							
 							String folderPath = _buffered.readLine();
+							System.out.println(PRE_CONSOLE + "Creating: " + folderPath);
 							File dir = new File(_rootFolder + folderPath);
 							if(dir.exists()) {
 								if(!dir.isDirectory()) break;
