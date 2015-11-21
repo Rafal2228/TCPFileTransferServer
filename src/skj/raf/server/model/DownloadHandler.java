@@ -16,8 +16,8 @@ import skj.raf.server.controller.RenderCtrl;
 public class DownloadHandler {
 	
 	private static final String PRE_CONSOLE = "DownloadHandler: ";
+	private static final int PACKAGE_SIZE = 4096;
 	private static String _rootFolder = "";
-	
 	private InputStream _client;
 	private PrintWriter _printer;
 	private BufferedReader _buffered;
@@ -59,36 +59,49 @@ public class DownloadHandler {
 					} break;
 					
 					case "file": {
-						int fileSize = Integer.parseInt(_buffered.readLine()); // reads file size
+						float fileSize = Float.parseFloat(_buffered.readLine()); // reads file size
 						String filePath = _buffered.readLine(); // reads file path and name
-						long checkSum = Long.parseLong(_buffered.readLine()); // reads checksum
 						
 						File file = new File(_rootFolder + filePath);
 						if(!file.exists()) {
 							_printer.println("OK");
 							
-							byte[] buffer = new byte[fileSize];
-							int downloaded = _client.read(buffer, 0, buffer.length);
-							int total = downloaded;
-													
-							do {
-								downloaded = _client.read(buffer, total, buffer.length - total);
-								if(downloaded >= 0) total += downloaded;
-						    } while(total < fileSize);
+							byte[] buffer = new byte[PACKAGE_SIZE];
+							int downloaded = 0;
+							float total = downloaded;
+//							int percent = 0;
+							Checksum recivedSum = new CRC32();
 							
 							file.createNewFile();
-							Checksum recivedSum = new CRC32();
-							recivedSum.update(buffer, 0, buffer.length);
+							BufferedOutputStream fileOutput = new BufferedOutputStream(new FileOutputStream(file));
+							
+							do {
+								downloaded = _client.read(buffer, 0, PACKAGE_SIZE);
+								
+								if(downloaded >= 0) {
+									recivedSum.update(buffer, 0, downloaded);
+									fileOutput.write(buffer, 0, downloaded);
+									fileOutput.flush();
+									total += downloaded;
+								}
+								
+//								percent = (int)((total/fileSize)* 100);
+//								System.out.println(PRE_CONSOLE + "Progress of " + file.getName() + ": " + percent + "%");
+						    } while(total < fileSize);
+							
+							_printer.println("RECIVED");
+							
 							long recivedCheckSum = recivedSum.getValue();
+							System.out.println(PRE_CONSOLE + "Recived checksum: " + recivedCheckSum);
+							long checkSum = Long.parseLong(_buffered.readLine()); // reads checksum
+							System.out.println(PRE_CONSOLE + "Desired checksum: " + checkSum);
 							
 							if(checkSum == recivedCheckSum) {
-								BufferedOutputStream fileOutput = new BufferedOutputStream(new FileOutputStream(file));
-								fileOutput.write(buffer, 0, total);
-								fileOutput.flush();
-								fileOutput.close();
+								System.out.println(PRE_CONSOLE + "Checksum ok : " + filePath);
 							} else {
 								System.out.println(PRE_CONSOLE + "Checksum error : " + checkSum + " : " + recivedCheckSum);
 							}
+							fileOutput.close();
 						} else {
 							_printer.println("EXIST");
 							System.out.println(PRE_CONSOLE + "File already exists!");
