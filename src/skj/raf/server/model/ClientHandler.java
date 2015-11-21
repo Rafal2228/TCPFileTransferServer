@@ -40,6 +40,7 @@ public class ClientHandler implements Runnable {
 		while(_running) {
 			_running = _downloader.execute();
 		}
+		System.out.println(PRE_CONSOLE + "Becoming deaf");
 		close();
 	}
 

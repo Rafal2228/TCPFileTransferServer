@@ -26,7 +26,7 @@ public class DownloadHandler {
 	public DownloadHandler(InputStream client, OutputStream clientOut) {
 		_client = client;
 		_buffered = new BufferedReader(new InputStreamReader(_client));
-		_printer = new PrintWriter(clientOut);
+		_printer = new PrintWriter(clientOut, true);
 	}
 	
 	public static void changeRootDirectory(String folder) {
@@ -53,69 +53,65 @@ public class DownloadHandler {
 			try {
 				String command = _buffered.readLine();
 				
-				if(command != null){
-					switch(command) {
-						case "close": {
-							close();
-						} break;
+				switch(command) {
+					case "close": {
+						close();
+					} break;
+					
+					case "file": {
+						int fileSize = Integer.parseInt(_buffered.readLine()); // reads file size
+						String filePath = _buffered.readLine(); // reads file path and name
+						long checkSum = Long.parseLong(_buffered.readLine()); // reads checksum
 						
-						case "file": {
-							int fileSize = Integer.parseInt(_buffered.readLine()); // reads file size
-							String filePath = _buffered.readLine(); // reads file path and name
-							long checkSum = Long.parseLong(_buffered.readLine()); // reads checksum
+						File file = new File(_rootFolder + filePath);
+						if(!file.exists()) {
+							_printer.println("OK");
 							
-							File file = new File(_rootFolder + filePath);
-							if(!file.exists()) {
-								_printer.println("OK");
-								
-								byte[] buffer = new byte[fileSize];
-								int downloaded = _client.read(buffer, 0, buffer.length);
-								int total = downloaded;
-														
-								do {
-									downloaded = _client.read(buffer, total, buffer.length - total);
-									if(downloaded >= 0) total += downloaded;
-							    } while(total < fileSize);
-								
-								file.createNewFile();
-								Checksum recivedSum = new CRC32();
-								recivedSum.update(buffer, 0, buffer.length);
-								long recivedCheckSum = recivedSum.getValue();
-								
-								if(checkSum == recivedCheckSum) {
-									BufferedOutputStream fileOutput = new BufferedOutputStream(new FileOutputStream(file));
-									fileOutput.write(buffer, 0, total);
-									fileOutput.flush();
-									fileOutput.close();
-								} else {
-									System.out.println(PRE_CONSOLE + "Checksum error : " + checkSum + " : " + recivedCheckSum);
-								}
+							byte[] buffer = new byte[fileSize];
+							int downloaded = _client.read(buffer, 0, buffer.length);
+							int total = downloaded;
+													
+							do {
+								downloaded = _client.read(buffer, total, buffer.length - total);
+								if(downloaded >= 0) total += downloaded;
+						    } while(total < fileSize);
+							
+							file.createNewFile();
+							Checksum recivedSum = new CRC32();
+							recivedSum.update(buffer, 0, buffer.length);
+							long recivedCheckSum = recivedSum.getValue();
+							
+							if(checkSum == recivedCheckSum) {
+								BufferedOutputStream fileOutput = new BufferedOutputStream(new FileOutputStream(file));
+								fileOutput.write(buffer, 0, total);
+								fileOutput.flush();
+								fileOutput.close();
 							} else {
-								_printer.println("EXIST");
-								System.out.println(PRE_CONSOLE + "File already exists!");
+								System.out.println(PRE_CONSOLE + "Checksum error : " + checkSum + " : " + recivedCheckSum);
 							}
-							
-							
-						} break;
-						
-						case "dir": {							
-							String folderPath = _buffered.readLine();
-							System.out.println(PRE_CONSOLE + "Creating: " + folderPath);
-							File dir = new File(_rootFolder + folderPath);
-							if(dir.exists()) {
-								if(!dir.isDirectory()) break;
-							} else {
-								dir.mkdir();
-							}
-						} break;
-						
-						default : {
-							System.out.println(PRE_CONSOLE + "Invalid command:" + command);
-						} break;
-					}
+						} else {
+							_printer.println("EXIST");
+							System.out.println(PRE_CONSOLE + "File already exists!");
+						}
+					} break;
+					
+					case "dir": {							
+						String folderPath = _buffered.readLine();
+						System.out.println(PRE_CONSOLE + "Creating: " + folderPath);
+						File dir = new File(_rootFolder + folderPath);
+						if(dir.exists()) {
+							if(!dir.isDirectory()) break;
+						} else {
+							dir.mkdir();
+						}
+					} break;
+					
+					default : {
+						System.out.println(PRE_CONSOLE + "Invalid command:" + command);
+					} break;
 				}
 			} catch (Exception e) {
-				close();
+				e.printStackTrace();
 			};
 		}
 		
