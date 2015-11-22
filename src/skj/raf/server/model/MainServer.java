@@ -44,6 +44,13 @@ public class MainServer {
 		new Thread(session).start();
 	}
 	
+	public void removeSession(ClientHandler client) {
+		if(_allSessions.contains(client)) {
+			_allSessions.remove(client);
+			RenderCtrl.updateSessions(_allSessions.size());
+		}
+	}
+	
 	public void start() {
 		if(!_started){
 			try {

@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -12,13 +13,20 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import skj.raf.server.controller.RenderCtrl;
+import skj.raf.server.controller.RenderCtrl.Status;
 
 public class DownloadHandler {
 	
 	private static final String PRE_CONSOLE = "DownloadHandler: ";
 	private static final int PACKAGE_SIZE = 4096;
 	private static String _rootFolder = "";
+	
+	private int _totalFiles;
+	private int _totalFolders;
+	private int _totalErrors;
+	
 	private InputStream _client;
+	private OutputStream _clientOut;
 	private PrintWriter _printer;
 	private BufferedReader _buffered;
 	private boolean _running = true;	
@@ -27,6 +35,9 @@ public class DownloadHandler {
 		_client = client;
 		_buffered = new BufferedReader(new InputStreamReader(_client));
 		_printer = new PrintWriter(clientOut, true);
+		_clientOut = clientOut;
+		
+		_totalFiles = _totalErrors = _totalFolders = 0;
 	}
 	
 	public static void changeRootDirectory(String folder) {
@@ -53,12 +64,15 @@ public class DownloadHandler {
 			try {
 				String command = _buffered.readLine();
 				
+				if(command != null)
 				switch(command) {
 					case "close": {
+						System.out.println(PRE_CONSOLE + "Host disconnected");
 						close();
 					} break;
 					
 					case "file": {
+						RenderCtrl.updateStatus(Status.DOWNLOADING);
 						float fileSize = Float.parseFloat(_buffered.readLine()); // reads file size
 						String filePath = _buffered.readLine(); // reads file path and name
 						
@@ -92,20 +106,26 @@ public class DownloadHandler {
 							_printer.println("RECIVED");
 							
 							long recivedCheckSum = recivedSum.getValue();
-							System.out.println(PRE_CONSOLE + "Recived checksum: " + recivedCheckSum);
 							long checkSum = Long.parseLong(_buffered.readLine()); // reads checksum
-							System.out.println(PRE_CONSOLE + "Desired checksum: " + checkSum);
 							
 							if(checkSum == recivedCheckSum) {
 								System.out.println(PRE_CONSOLE + "Checksum ok : " + filePath);
+								_totalFiles++;
+								_printer.println("CHECKSUM_OK");
+								_printer.flush();
 							} else {
 								System.out.println(PRE_CONSOLE + "Checksum error : " + checkSum + " : " + recivedCheckSum);
+								_totalErrors++;
+								_printer.println("CHECKSUM_ERROR");
+								_printer.flush();
 							}
 							fileOutput.close();
 						} else {
 							_printer.println("EXIST");
 							System.out.println(PRE_CONSOLE + "File already exists!");
+							_totalErrors++;
 						}
+						RenderCtrl.updateStatus(Status.ACTIVE);
 					} break;
 					
 					case "dir": {							
@@ -114,8 +134,10 @@ public class DownloadHandler {
 						File dir = new File(_rootFolder + folderPath);
 						if(dir.exists()) {
 							if(!dir.isDirectory()) break;
+							_totalErrors++;
 						} else {
 							dir.mkdir();
+							_totalFolders++;
 						}
 					} break;
 					
@@ -128,7 +150,23 @@ public class DownloadHandler {
 			};
 		}
 		
+		if(!_running) {
+			try {
+				_client.close();
+				_clientOut.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		updateView();
+		
 		return _running;
+	}
+	
+	private void updateView() {
+		RenderCtrl.updateTotal(_totalFolders, _totalFiles, _totalErrors);
 	}
 	
 	public void close() {

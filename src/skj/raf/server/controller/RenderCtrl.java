@@ -8,7 +8,8 @@ public class RenderCtrl {
 	
 	public enum Status {
 		ACTIVE ("Active"),
-		STOPPED ("Stopped");
+		STOPPED ("Stopped"),
+		DOWNLOADING ("Downloading");
 		
 		private String _name;
 		
@@ -54,5 +55,9 @@ public class RenderCtrl {
 	
 	public static void updateWhitelist(String whitelist) {
 		_mainFrame.updateWhitelist(whitelist);
+	}
+	
+	public static void updateTotal(int totalFolders, int totalFiles, int totalErrors) {
+		_mainFrame.updateTotal("Created " + totalFolders + " folders, Downloaded " + totalFiles + " files, Occured " + totalErrors + " errors");
 	}
 }

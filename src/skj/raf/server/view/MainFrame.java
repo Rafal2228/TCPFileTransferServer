@@ -26,6 +26,7 @@ public class MainFrame extends JFrame{
 	private JLabel _sessions;
 	private JLabel _folder;
 	private JLabel _whitelist;
+	private JLabel _total;
 	
 	public MainFrame(){
 		super("Server v.0.1");
@@ -139,6 +140,11 @@ public class MainFrame extends JFrame{
 		bodyPanel.add(_whitelist);
 		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 		
+		_total = new JLabel("Total: ");
+		_total.setAlignmentX(LEFT_ALIGNMENT);
+		bodyPanel.add(_total);
+		bodyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		
 		add(bodyPanel, BorderLayout.CENTER);
 	}
 
@@ -164,6 +170,10 @@ public class MainFrame extends JFrame{
 	
 	public void updateWhitelist(String whitelist) {
 		_whitelist.setText("Whitelist: " + whitelist);
+	}
+	
+	public void updateTotal(String total) {
+		_total.setText("Total: " + total);
 	}
 	
 	public void bootstrap() {

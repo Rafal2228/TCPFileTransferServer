@@ -3,6 +3,7 @@ package skj.raf.server.controller;
 import java.util.Date;
 import java.util.List;
 
+import skj.raf.server.model.ClientHandler;
 import skj.raf.server.model.DownloadHandler;
 import skj.raf.server.model.MainServer;
 
@@ -39,5 +40,9 @@ public class ConnectionCtrl {
 		if(!_mainServer.isRunning()){
 			DownloadHandler.changeRootDirectory(folder);
 		}
+	}
+	
+	public static void clientDisconnect(ClientHandler client) {
+		_mainServer.removeSession(client);
 	}
 }
